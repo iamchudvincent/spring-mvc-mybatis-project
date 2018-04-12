@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 
+         符号转义说明
+    &lt;          < 
+    &gt;          >  
+    &lt;&gt;     <>
+    &amp;        & 
+    &apos;       '
+    &quot;       "
+  <![CDATA[ 这里写你的SQL或者符号 ]]> 
+ -->
+<mapper namespace="dao.FeedbackMapper">
+
+    <!-- Result Map 数据库映射到实体类  -->
+    <resultMap id="tableMapToModel" type="model.FeedbackModel">
+        <result column="id" property="id"/>
+        <result column="student_name" property="student_name"/>
+        <result column="from_city" property="from_city"/>
+        <result column="student_type" property="student_type"/>
+        <result column="purpose" property="purpose"/>
+        <result column="course_type" property="course_type"/>
+        <result column="study_date" property="study_date"/>
+        <result column="interview_date" property="interview_date"/>
+        <result column="profile_img" property="profile_img"/>
+        <result column="title" property="title"/>
+        <result column="content" property="content"/>
+        <result column="createTime" property="createTime"/>
+        <result column="country_id" property="country_id"/>
+        <result column="agency_id" property="agency_id"/>
+        <association property="provinceModel" column="from_city" javaType="model.ProvinceModel"
+                     resultMap="tableProvinceMapToModel"/>
+        <association property="courseTypeModel" column="course_type" javaType="model.CourseTypeModel"
+                     resultMap="tableCourseTypeMapToModel"/>
+        <association property="studentTypeModel" column="student_type" javaType="model.StudentTypeModel"
+                     resultMap="tableStudentTypeMapToModel"/>
+        <association property="countryModel" column="country_id" javaType="model.CountryModel"
+                     resultMap="tableCountryMapToModel"/>
+        <association property="agenciesModel" column="agency_id" javaType="model.AgenciesModel"
+                     resultMap="tableAgenciesMapToModel"/>
+    </resultMap>
+
+
+    <!-- Result Map EmployeeRoleViewMap -->
+    <resultMap id="tableProvinceMapToModel" type="model.ProvinceModel">
+        <result column="id" property="id"/>
+        <result column="parentId" property="parentId"/>
+        <result column="province_name" property="province_name"/>
+        <result column="country_id" property="country_id"/>
+        <!-- 1 to 1  -->
+    </resultMap>
+
+
+    <resultMap id="tableCourseTypeMapToModel" type="model.CourseTypeModel">
+        <result column="course_id" property="course_id"/>
+        <result column="cource_name" property="cource_name"/>
+        <result column="description" property="description"/>
+        <result column="createTime" property="createTime"/>
+    </resultMap>
+
+    <!-- StudentType Model -->
+    <resultMap id="tableStudentTypeMapToModel" type="model.StudentTypeModel">
+        <result column="type_id" property="type_id"/>
+        <result column="type_name" property="type_name"/>
+        <result column="type_description" property="type_description"/>
+        <result column="createTime" property="createTime"/>
+    </resultMap>
+
+    <!-- Country Model -->
+    <resultMap id="tableCountryMapToModel" type="model.CountryModel">
+        <result column="country_id" property="country_id"/>
+        <result column="country_name" property="country_name"/>
+        <result column="country_code" property="country_code"/>
+        <result column="currency_sign" property="currency_sign"/>
+        <result column="currency_code" property="currency_code"/>
+        <result column="digit" property="digit"/>
+        <result column="language" property="language"/>
+        <result column="timezone" property="timezone"/>
+        <result column="notes" property="notes"/>
+        <result column="del_flg" property="del_flg"/>
+        <result column="created_at" property="created_at"/>
+        <result column="modified_at" property="modified_at"/>
+        <result column="deleted_at" property="deleted_at"/>
+    </resultMap>
+
+    <!-- Agencies Model -->
+    <resultMap id="tableAgenciesMapToModel" type="model.AgenciesModel">
+        <result column="agency_id" property="agency_id"/>
+        <result column="agency_code" property="agency_code"/>
+        <result column="agency_name" property="agency_name"/>
+        <result column="simple_name" property="simple_name"/>
+        <result column="office_address" property="office_address"/>
+        <result column="office_phone" property="office_phone"/>
+        <result column="office_responsible" property="office_responsible"/>
+        <result column="language" property="language"/>
+        <result column="timezone" property="timezone"/>
+        <result column="status" property="status"/>
+        <result column="position" property="position"/>
+        <result column="email" property="email"/>
+        <result column="market_area" property="market_area"/>
+        <result column="remarks" property="remarks"/>
+        <result column="createTime" property="createTime"/>
+    </resultMap>
+
+
+    <!-- 所有条件分页 -->
+    <sql id="model">
+        <include refid="modelCount"/>
+        ${pageUtil.orderByCondition}
+        <if test="pageUtil.paging == true">
+            ${pageUtil.limit}
+        </if>
+    </sql>
+
+    <!-- 总记录数 -->
+    <sql id="modelCount">
+        <where>
+            <choose>
+                <when test="pageUtil.like==true">
+                    <include refid="andOtherAllLike"/>
+                </when>
+                <otherwise>
+                    <include refid="andOtherAll"/>
+                </otherwise>
+            </choose>
+            ${pageUtil.andCondition}
+        </where>
+        ${pageUtil.queryCondition}
+    </sql>
+
+    <!-- tbaleColumns  所有列 -->
+    <!--  id,name,password,nickName,email,icon,state,time,count,createTime,remark -->
+    <sql id="tbaleColumns">
+        <trim suffix="" suffixOverrides=",">
+            id, student_name, from_city, student_type, purpose, course_type, study_date, interview_date, profile_img,
+            title, content, createTime, country_id, agency_id
+        </trim>
+    </sql>
+
+
+    <!-- insertColumns 入库列 -->
+    <sql id="insertColumns">
+        <trim suffix="" suffixOverrides=",">
+            <if test="id != null and id != '' ">
+                id,
+            </if>
+            <if test="student_name != null and student_name != '' ">
+                student_name,
+            </if>
+            <if test="from_city != null and from_city != '' ">
+                from_city,
+            </if>
+            <if test="student_type != null and student_type != '' ">
+                student_type,
+            </if>
+            <if test="purpose != null and purpose != '' ">
+                purpose,
+            </if>
+            <if test="course_type != null and course_type != '' ">
+                course_type,
+            </if>
+            <if test="study_date != null and study_date != '' ">
+                study_date,
+            </if>
+            <if test="interview_date != null and interview_date != '' ">
+                interview_date,
+            </if>
+            <if test="profile_img != null and profile_img != '' ">
+                profile_img,
+            </if>
+            <if test="title != null and title != '' ">
+                title,
+            </if>
+            <if test="content != null and content != '' ">
+                content,
+            </if>
+            <if test="createTime != null ">
+                createTime,
+            </if>
+            <if test="country_id != null ">
+                country_id,
+            </if>
+            <if test="agency_id != null ">
+                agency_id,
+            </if>
+        </trim>
+    </sql>
+
+
+    <!-- insertParams  入库值 -->
+    <sql id="insertParams">
+        <trim suffix="" suffixOverrides=",">
+            <if test="id != null and id != '' ">
+                #{id},
+            </if>
+            <if test="student_name != null and student_name != '' ">
+                #{student_name},
+            </if>
+            <if test="from_city != null and from_city != '' ">
+                #{from_city},
+            </if>
+            <if test="student_type != null and student_type != '' ">
+                #{student_type},
+            </if>
+            <if test="purpose != null and purpose != '' ">
+                #{purpose},
+            </if>
+            <if test="course_type != null and course_type != '' ">
+                #{course_type},
+            </if>
+            <if test="study_date != null and study_date != '' ">
+                #{study_date},
+            </if>
+            <if test="interview_date != null and interview_date != '' ">
+                #{interview_date},
+            </if>
+            <if test="profile_img != null and profile_img != '' ">
+                #{profile_img},
+            </if>
+            <if test="title != null and title != '' ">
+                #{title},
+            </if>
+            <if test="content != null and content != '' ">
+                #{content},
+            </if>
+            <if test="createTime != null ">
+                #{createTime},
+            </if>
+            <if test="country_id != null ">
+                #{country_id},
+            </if>
+            <if test="agency_id != null ">
+                #{agency_id},
+            </if>
+        </trim>
+    </sql>
+
+
+    <!-- updateParams  更新列 -->
+    <sql id="updateParams">
+        <trim suffix="" suffixOverrides=",">
+            <if test="id != null and id != '' ">
+                id=#{id},
+            </if>
+            <if test="student_name != null and student_name != '' ">
+                student_name=#{student_name},
+            </if>
+            <if test="from_city != null and from_city != '' ">
+                from_city=#{from_city},
+            </if>
+            <if test="student_type != null and student_type != '' ">
+                student_type=#{student_type},
+            </if>
+            <if test="purpose != null and purpose != '' ">
+                purpose=#{purpose},
+            </if>
+            <if test="course_type != null and course_type != '' ">
+                course_type=#{course_type},
+            </if>
+            <if test="study_date != null and study_date != '' ">
+                study_date=#{study_date},
+            </if>
+            <if test="interview_date != null and interview_date != '' ">
+                interview_date=#{interview_date},
+            </if>
+            <if test="profile_img != null and profile_img != '' ">
+                profile_img=#{profile_img},
+            </if>
+            <if test="title != null and title != '' ">
+                title=#{title},
+            </if>
+            <if test="content != null and content != '' ">
+                content=#{content},
+            </if>
+            <if test="createTime != null ">
+                createTime=#{createTime},
+            </if>
+            <if test="country_id != null ">
+                country_id=#{country_id},
+            </if>
+            <if test="agency_id != null ">
+                agency_id=#{agency_id},
+            </if>
+        </trim>
+    </sql>
+
+
+    <!-- 条件 查询  , 去掉主键列-->
+    <sql id="andOther">
+        <trim suffixOverrides=",">
+            <if test="student_name != null ">
+                and student_name=#{student_name},
+            </if>
+            <if test="from_city != null ">
+                and from_city=#{from_city},
+            </if>
+            <if test="student_type != null ">
+                and student_type=#{student_type},
+            </if>
+            <if test="purpose != null ">
+                and purpose=#{purpose},
+            </if>
+            <if test="course_type != null ">
+                and course_type=#{course_type},
+            </if>
+            <if test="study_date != null ">
+                and study_date=#{study_date},
+            </if>
+            <if test="interview_date != null ">
+                and interview_date=#{interview_date},
+            </if>
+            <if test="profile_img != null ">
+                and profile_img=#{profile_img},
+            </if>
+            <if test="title != null ">
+                and title=#{title},
+            </if>
+            <if test="content != null and content != '' ">
+                and content=#{content},
+            </if>
+            <if test="createTime != null ">
+                and createTime=#{createTime},
+            </if>
+            <if test="country_id != null ">
+                and country_id=#{country_id},
+            </if>
+            <if test="agency_id != null ">
+                and agency_id=#{agency_id},
+            </if>
+        </trim>
+    </sql>
+
+
+    <!-- 查询条件  包含所有 -->
+    <sql id="andOtherAll">
+        <trim suffixOverrides=",">
+            <if test="id != null and id != '' ">
+                and id=#{id},
+            </if>
+            <if test="student_name != null and student_name != '' ">
+                and student_name=#{student_name},
+            </if>
+            <if test="from_city != null and from_city != '' ">
+                and from_city=#{from_city},
+            </if>
+            <if test="student_type != null and student_type != '' ">
+                and student_type=#{student_type},
+            </if>
+            <if test="purpose != null and purpose != '' ">
+                and purpose=#{purpose},
+            </if>
+            <if test="course_type != null and course_type != '' ">
+                and course_type=#{course_type},
+            </if>
+            <if test="study_date != null and study_date != '' ">
+                and study_date=#{study_date},
+            </if>
+            <if test="interview_date != null and interview_date != '' ">
+                and interview_date=#{interview_date},
+            </if>
+            <if test="profile_img != null and profile_img != '' ">
+                and profile_img=#{profile_img},
+            </if>
+            <if test="title != null and title != '' ">
+                and title=#{title},
+            </if>
+            <if test="content != null and content != '' ">
+                and content=#{content},
+            </if>
+            <if test="createTime != null ">
+                and createTime=#{createTime},
+            </if>
+            <if test="country_id != null ">
+                and country_id=#{country_id},
+            </if>
+            <if test="agency_id != null ">
+                and agency_id=#{agency_id},
+            </if>
+        </trim>
+    </sql>
+
+
+    <!-- 模糊查询判断 -->
+    <sql id="andOtherAllLike">
+        <trim suffixOverrides=",">
+            <if test="id != null and id != '' ">
+                and id like &apos;%${id}%&apos;
+            </if>
+            <if test="student_name != null and student_name != '' ">
+                and student_name like &apos;%${student_name}%&apos;
+            </if>
+            <if test="from_city != null and from_city != '' ">
+                and from_city like &apos;%${from_city}%&apos;
+            </if>
+            <if test="student_type != null and student_type != '' ">
+                and student_type like &apos;%${student_type}%&apos;
+            </if>
+            <if test="purpose != null and purpose != '' ">
+                and purpose like &apos;%${purpose}%&apos;
+            </if>
+            <if test="course_type != null and course_type != '' ">
+                and course_type like &apos;%${course_type}%&apos;
+            </if>
+            <if test="study_date != null and study_date != '' ">
+                and study_date like &apos;%${study_date}%&apos;
+            </if>
+            <if test="interview_date != null and interview_date != '' ">
+                and interview_date like &apos;%${interview_date}%&apos;
+            </if>
+            <if test="profile_img != null and profile_img != '' ">
+                and profile_img like &apos;%${profile_img}%&apos;
+            </if>
+            <if test="title != null and title != '' ">
+                and title like &apos;%${title}%&apos;
+            </if>
+            <if test="content != null and content != '' ">
+                and content like &apos;%${content}%&apos;
+            </if>
+            <if test="createTime != null ">
+                and createTime like &apos;%${createTime}%&apos;
+            </if>
+            <if test="country_id != null ">
+                and country_id like &apos;%${country_id}%&apos;
+            </if>
+            <if test="agency_id != null ">
+                and agency_id like &apos;%${agency_id}%&apos;
+            </if>
+        </trim>
+    </sql>
+
+    <!-- where 条件  -->
+    <sql id="where">
+     where 1=1
+</sql>
+
+    <!-- columnKey  主键 列名称 ,视图获取不到主键 需要设置 -->
+    <sql id="columnKey">
+     and id=#{id}
+</sql>
+
+
+    <!-- 自定义查询 -->
+    <sql id="sql">
+        <if test="sql != null and sql !=''">
+            ${sql}
+        </if>
+        <if test="sql == null || sql==''">
+            select
+            <include refid="tbaleColumns"/>
+            from Feedback
+            <include refid="where"/>
+        </if>
+    </sql>
+
+    <!-- 查询条件 -->
+    <sql id="queryCondition">
+        <if test="queryCondition != null and queryCondition != ''">
+            ${queryCondition}
+        </if>
+    </sql>
+
+
+    <!-- 添加,插入记录   -->
+    <insert id="insert" parameterType="model.FeedbackModel">
+        insert into Feedback(<include refid="insertColumns"/>) values(<include refid="insertParams"/>);
+    </insert>
+
+    <!-- 添加,SQL添加   -->
+    <insert id="insertBySql" parameterType="java.lang.String">
+        <include refid="sql"/>
+    </insert>
+
+    <!-- 删除,主键删除   -->
+    <delete id="deleteByPrimaryKey" parameterType="model.FeedbackModel">
+        delete from Feedback
+        <include refid="where"/>
+        <include refid="columnKey"/>
+    </delete>
+
+    <!-- 删除,实体删除   -->
+    <delete id="deleteByEntity" parameterType="model.FeedbackModel">
+        delete from Feedback
+        <include refid="where"/>
+        <include refid="andOtherAll"/>
+    </delete>
+
+    <!-- 删除,SQL删除   -->
+    <delete id="deleteBySql" parameterType="java.lang.String">
+        <include refid="sql"/>
+    </delete>
+
+    <!-- 修改,主键更新  -->
+    <update id="updateByPrimaryKey" parameterType="model.FeedbackModel">
+        update Feedback
+        <set>
+            <include refid="updateParams"/>
+        </set>
+        <include refid="where"/>
+        <include refid="columnKey"/>
+    </update>
+
+    <!-- 修改,SQL更新 -->
+    <update id="updateBySql" parameterType="java.lang.String">
+        <include refid="sql"/>
+    </update>
+
+    <!-- 查询,主键查询   -->
+    <select id="selectByPrimaryKey" resultMap="tableMapToModel" parameterType="java.lang.Object">
+        select
+        <include refid="tbaleColumns"/>
+        from Feedback
+        <include refid="where"/>
+        <include refid="columnKey"/>
+    </select>
+
+    <!-- 查询,实体查询   -->
+    <select id="selectByEntiry" resultMap="tableMapToModel" parameterType="model.FeedbackModel">
+        select
+        <include refid="tbaleColumns"/>
+        from Feedback
+        <include refid="where"/>
+        <include refid="andOtherAll"/>
+    </select>
+
+    <!-- 查询,SQL -->
+    <select id="selectBySql" resultMap="tableMapToModel" parameterType="java.lang.String">
+        <include refid="sql"/>
+    </select>
+
+    <!-- 查询 ,总行数,分页 ,模型 -->
+    <select id="selectByModelCount" resultType="java.lang.Integer" parameterType="model.FeedbackModel">
+        select count(1) from Feedback
+        <include refid="modelCount"/>
+    </select>
+
+    <!-- 查询,排序,分页,模型  -->
+    <select id="selectByModel" resultMap="tableMapToModel" parameterType="model.FeedbackModel">
+        select fb.*,fb.createTime as created_time,pvmodel.id,pvmodel.province_name,stModel.type_name,
+        stModel.type_id,stModel.createTime as
+        stCT,ctModel.cource_name,ctModel.course_id,ctModel.createTime as
+        crsCT,cntModel.country_name,cntModel.country_id,agnModel.simple_name,agnModel.agency_id,agnModel.createTime
+        as agnCT from Feedback fb
+        left join Province pvmodel on fb.from_city=pvmodel.id left join StudentType stModel on
+        fb.student_type=stModel.type_id left join CourseType ctModel on
+        fb.course_type=ctModel.course_id left join Country cntModel on fb.country_id=cntModel.country_id
+        left join Agencies agnModel on fb.agency_id=agnModel.agency_id
+        <include refid="model"/>
+    </select>
+
+    <!-- 查询,总行数,Map -->
+    <select id="selectByMapCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(1) from Feedback
+        <include refid="where"/>
+        <include refid="andOtherAll"/>
+        ${queryCondition}
+        <if test="andCondition !=null and andCondition !=''">
+            and ${andCondition}
+        </if>
+        <if test="orderCondition != null and queryCondition != ''">
+            order by ${orderCondition}
+        </if>
+    </select>
+
+    <!-- 查询,参数查询,Map -->
+    <select id="selectByMap" resultMap="tableMapToModel" parameterType="java.util.Map">
+        select<include refid="tbaleColumns"/>from Feedback
+        <include refid="where"/>
+        <include refid="andOtherAll"/>
+        ${queryCondition}
+        <if test="andCondition !=null and andCondition !=''">
+            and ${andCondition}
+        </if>
+        <if test="orderCondition != null and queryCondition != ''">
+            order by ${orderCondition}
+        </if>
+    </select>
+
+    <!-- 查询,总行数,Map分页 -->
+    <select id="selectByMapPagingCount" resultType="java.lang.Integer" parameterType="java.util.Map">
+        select count(0) from Feedback
+        <include refid="where"/>
+        <include refid="andOtherAll"/>
+        ${queryCondition}
+        <if test="andCondition !=null and andCondition !=''">
+            and ${andCondition}
+        </if>
+        ${pageUtil.queryCondition}
+        ${pageUtil.andCondition}
+    </select>
+
+    <!-- 查询,参数查询,Map分页 -->
+    <select id="selectByMapPaging" resultMap="tableMapToModel" parameterType="java.util.Map">
+        select<include refid="tbaleColumns"/>from Feedback
+        <include refid="where"/>
+        <include refid="andOtherAll"/>
+        ${queryCondition}
+        <if test="andCondition !=null and andCondition !=''">
+            and ${andCondition}
+        </if>
+        <if test="orderCondition != null and queryCondition != ''">
+            order by ${orderCondition}
+        </if>
+        ${pageUtil.queryCondition}
+        ${pageUtil.andCondition}
+        ${pageUtil.orderByCondition}
+        ${pageUtil.limit}
+    </select>
+
+    <!--查询, 图表 -->
+    <select id="charts" parameterType="java.util.Map" resultType="java.util.Map">
+        <!-- '%Y-%m-%d %H:%i:%s' -->
+        SELECT COUNT(*),DATE_FORMAT(createTime,'${groupTimeFormat}') as createTime FROM Feedback
+        <if test="startTimeFormat!=null and endTimeFormat!=null">
+            WHERE
+            createTime&gt;=DATE_FORMAT(NOW(), '${startTimeFormat}') AND createTime&lt;=DATE_FORMAT(NOW(),
+            '${endTimeFormat}')
+        </if>
+        GROUP BY DATE_FORMAT(createTime,'${groupTimeFormat}')
+    </select>
+
+    <!--/////////////// 级联递归查询  一对多 ///////////////-->
+    <resultMap type="model.FeedbackModel" id="tableMapToModelChild" extends="tableMapToModel">
+
+        <!-- 一对一关联   注意 顺序       需要用时开启 -->
+        <!--
+       <association property="FeedbackModel" column="parentId" select="getParent">
+
+       </association>
+       -->
+
+        <!-- 一对多关联  -->
+        <collection property="listFeedbackModel" column="id" select="getChild">
+            <!-- 对象的属性 -->
+        </collection>
+
+    </resultMap>
+
+    <!--
+    <select id="getParent" resultMap="tableMapToModelChild" parameterType="String">
+         SELECT * FROM Feedback where id=#{parentId}
+    </select>
+    -->
+
+    <select id="getChild" resultMap="tableMapToModelChild" parameterType="String">
+     SELECT * FROM Feedback where parentId=#{id}
+</select>
+
+    <select id="selectByChild" resultMap="tableMapToModelChild" parameterType="model.FeedbackModel">
+        SELECT<include refid="tbaleColumns"/>FROM Feedback
+        <where>
+            <include refid="andOtherAll"/>
+            ${pageUtil.andCondition}
+        </where>
+        ${pageUtil.queryCondition}
+        ${pageUtil.orderByCondition}
+        <if test="pageUtil.paging == true">
+            ${pageUtil.limit}
+        </if>
+
+    </select>
+
+    <!--/////////////// 级联递归查询  一对多 ///////////////-->
+
+
+    <!--//////////////////////增加/////////////////////// -->
+</mapper>   
